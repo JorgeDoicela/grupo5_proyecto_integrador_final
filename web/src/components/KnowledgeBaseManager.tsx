@@ -52,15 +52,15 @@ export function KnowledgeBaseManager({
   };
 
   return (
-    <div className="surface-card p-6">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <Database className="h-5 w-5 text-sky-400" aria-hidden="true" />
+    <div className="clinical-surface p-6 sm:p-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Database className="h-5 w-5 text-[#0b57d0]" aria-hidden="true" />
           <div>
-            <h2 className="text-lg font-semibold text-slate-100">
+            <h2 className="text-lg font-normal text-[#1f1f1f]">
               Módulo de Adquisición de Conocimiento (CRUD en PostgreSQL)
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#444746]">
               Cualquier cambio en reglas, síntomas o enfermedades actualiza en tiempo real
               el motor de inferencia, las tablas de verdad y el grafo semántico.
             </p>
@@ -71,27 +71,28 @@ export function KnowledgeBaseManager({
           type="button"
           onClick={handleResetCore}
           disabled={resetting}
-          className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300 disabled:opacity-60"
+          className="btn-glass-secondary flex items-center gap-1.5 px-4 py-2"
         >
-          <RotateCcw className="h-3.5 w-3.5" />
-          {resetting ? "Restaurando..." : "Restaurar reglas base del enunciado"}
+          <RotateCcw className="h-3.5 w-3.5 text-[#0b57d0]" />
+          <span>{resetting ? "Restaurando..." : "Restaurar reglas base del enunciado"}</span>
         </button>
       </div>
 
       {feedback && (
         <div
           role="status"
-          className={`mb-4 rounded-lg border px-3.5 py-2.5 text-xs ${
+          className={`mb-5 rounded-2xl border px-4 py-3 text-xs font-medium ${
             feedback.type === "success"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-              : "border-rose-500/40 bg-rose-500/10 text-rose-200"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-rose-200 bg-rose-50 text-rose-800"
           }`}
         >
           {feedback.text}
         </div>
       )}
 
-      <div className="mb-5 flex gap-2 border-b border-slate-800 pb-3">
+      {/* Pestañas planas con línea de subrayado (Estándar Ateneo+) */}
+      <div className="mb-6 flex items-center gap-6 border-b border-slate-200">
         {(
           [
             { id: "rules", label: `Reglas (${rules.length})` },
@@ -103,10 +104,10 @@ export function KnowledgeBaseManager({
             key={tab.id}
             type="button"
             onClick={() => setSubTab(tab.id)}
-            className={`cursor-pointer rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+            className={`-mb-px cursor-pointer border-b-2 pb-2.5 text-sm transition-colors ${
               subTab === tab.id
-                ? "bg-sky-500 text-slate-950"
-                : "bg-slate-900 text-slate-300 hover:text-slate-100"
+                ? "border-blue-600 font-semibold text-blue-700"
+                : "border-transparent font-medium text-[#444746] hover:border-slate-300 hover:text-[#1f1f1f]"
             }`}
           >
             {tab.label}

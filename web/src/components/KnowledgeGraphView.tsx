@@ -28,7 +28,7 @@ export function KnowledgeGraphView({
 
     const maxRows = Math.max(symptoms.length, rules.length, diseases.length, 1);
     const height = Math.max(460, maxRows * 84 + 80);
-    const width = 960;
+    const width = 980;
 
     const distributeY = (count: number, index: number): number => {
       if (count === 1) return height / 2;
@@ -40,13 +40,13 @@ export function KnowledgeGraphView({
     const positioned = new Map<string, PositionedNode>();
 
     symptoms.forEach((n, idx) => {
-      positioned.set(n.id, { ...n, x: 130, y: distributeY(symptoms.length, idx) });
+      positioned.set(n.id, { ...n, x: 140, y: distributeY(symptoms.length, idx) });
     });
     rules.forEach((n, idx) => {
-      positioned.set(n.id, { ...n, x: 480, y: distributeY(rules.length, idx) });
+      positioned.set(n.id, { ...n, x: 490, y: distributeY(rules.length, idx) });
     });
     diseases.forEach((n, idx) => {
-      positioned.set(n.id, { ...n, x: 830, y: distributeY(diseases.length, idx) });
+      positioned.set(n.id, { ...n, x: 840, y: distributeY(diseases.length, idx) });
     });
 
     return { width, height, positioned };
@@ -72,33 +72,33 @@ export function KnowledgeGraphView({
     : null;
 
   return (
-    <div className="surface-card p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="clinical-surface p-6 sm:p-8">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-100">
+          <h2 className="text-lg font-normal text-[#1f1f1f]">
             Grafo de Conocimiento (Red Semántica Dinámica)
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className="mt-0.5 text-sm text-[#444746]">
             Generado directamente desde PostgreSQL. Haga clic en cualquier nodo para
-            inspeccionar sus relaciones causales.
+            resaltar sus relaciones deductivas.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-sky-400" /> Síntoma
+        <div className="flex flex-wrap items-center gap-4 text-xs text-[#444746]">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="h-2.5 w-2.5 rounded-full bg-cyan-500" /> Síntoma
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-sm bg-amber-400" /> Regla (AND)
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="h-2.5 w-2.5 rounded-sm bg-blue-600" /> Regla (AND)
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-rose-400" /> Enfermedad
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="h-2.5 w-2.5 rounded-full bg-indigo-600" /> Enfermedad
           </span>
           {selectedNodeId && (
             <button
               type="button"
               onClick={() => setSelectedNodeId(null)}
-              className="cursor-pointer rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:border-slate-500"
+              className="btn-glass-secondary px-3 py-1"
             >
               Limpiar selección
             </button>
@@ -106,10 +106,10 @@ export function KnowledgeGraphView({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 p-2">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-3">
         <svg
           viewBox={`0 0 ${layout.width} ${layout.height}`}
-          className="h-auto min-w-[720px] w-full"
+          className="h-auto w-full min-w-[740px]"
           role="img"
           aria-label="Grafo de conocimiento de síntomas, reglas y enfermedades respiratorias"
         >
@@ -123,7 +123,7 @@ export function KnowledgeGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8" />
             </marker>
             <marker
               id="arrow-active"
@@ -134,17 +134,17 @@ export function KnowledgeGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
             </marker>
           </defs>
 
-          <text x="130" y="28" textAnchor="middle" fill="#94a3b8" fontSize="12" fontWeight="600">
+          <text x="140" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
             SÍNTOMAS (PREMISAS)
           </text>
-          <text x="480" y="28" textAnchor="middle" fill="#94a3b8" fontSize="12" fontWeight="600">
+          <text x="490" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
             REGLAS DE PRODUCCIÓN
           </text>
-          <text x="830" y="28" textAnchor="middle" fill="#94a3b8" fontSize="12" fontWeight="600">
+          <text x="840" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
             DIAGNÓSTICOS (CONSECUENTES)
           </text>
 
@@ -153,8 +153,8 @@ export function KnowledgeGraphView({
             const to = layout.positioned.get(edge.target);
             if (!from || !to) return null;
 
-            const startX = from.x + (from.type === "rule" ? 44 : 92);
-            const endX = to.x - (to.type === "rule" ? 44 : 92);
+            const startX = from.x + (from.type === "rule" ? 46 : 96);
+            const endX = to.x - (to.type === "rule" ? 46 : 96);
             const midX = (startX + endX) / 2;
 
             const isHighlighted =
@@ -163,10 +163,10 @@ export function KnowledgeGraphView({
                 : activeNodeSet.has(edge.source) && activeNodeSet.has(edge.target);
 
             const strokeColor = isHighlighted
-              ? "#38bdf8"
+              ? "#2563eb"
               : edge.relation === "NEGATED_PREMISE"
-                ? "#f59e0b"
-                : "#334155";
+                ? "#d97706"
+                : "#cbd5e1";
 
             return (
               <path
@@ -174,9 +174,9 @@ export function KnowledgeGraphView({
                 d={`M ${startX} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${endX} ${to.y}`}
                 fill="none"
                 stroke={strokeColor}
-                strokeWidth={isHighlighted ? 2.5 : 1.4}
+                strokeWidth={isHighlighted ? 2.5 : 1.5}
                 strokeDasharray={edge.relation === "NEGATED_PREMISE" ? "5 4" : undefined}
-                opacity={selectedNodeId && !isHighlighted ? 0.2 : 0.9}
+                opacity={selectedNodeId && !isHighlighted ? 0.25 : 0.95}
                 markerEnd={isHighlighted ? "url(#arrow-active)" : "url(#arrow-default)"}
               />
             );
@@ -188,22 +188,23 @@ export function KnowledgeGraphView({
             const dimmed = selectedNodeId !== null && !isHighlighted;
 
             const fill =
+              isSelected || isHighlighted
+                ? node.type === "symptom"
+                  ? "#ecfeff"
+                  : node.type === "rule"
+                    ? "#eff6ff"
+                    : "#eef2ff"
+                : "#ffffff";
+
+            const stroke =
               node.type === "symptom"
-                ? "#0f172a"
+                ? "#06b6d4"
                 : node.type === "rule"
-                  ? "#1e1b10"
-                  : "#1f1218";
+                  ? "#2563eb"
+                  : "#6366f1";
 
-            const stroke = isSelected
-              ? "#38bdf8"
-              : node.type === "symptom"
-                ? "#38bdf8"
-                : node.type === "rule"
-                  ? "#f59e0b"
-                  : "#fb7185";
-
-            const rectWidth = node.type === "rule" ? 84 : 180;
-            const rectHeight = 48;
+            const rectWidth = node.type === "rule" ? 88 : 188;
+            const rectHeight = 50;
 
             return (
               <g
@@ -213,31 +214,31 @@ export function KnowledgeGraphView({
                   setSelectedNodeId((prev) => (prev === node.id ? null : node.id))
                 }
                 className="cursor-pointer"
-                opacity={dimmed ? 0.25 : 1}
+                opacity={dimmed ? 0.3 : 1}
               >
                 <rect
                   x={-rectWidth / 2}
                   y={-rectHeight / 2}
                   width={rectWidth}
                   height={rectHeight}
-                  rx={node.type === "rule" ? 8 : 24}
+                  rx={node.type === "rule" ? 12 : 25}
                   fill={fill}
                   stroke={stroke}
-                  strokeWidth={isSelected || isHighlighted ? 2.5 : 1.4}
+                  strokeWidth={isSelected || isHighlighted ? 2.4 : 1.3}
                 />
                 <text
                   y={-4}
                   textAnchor="middle"
-                  fill="#f8fafc"
+                  fill="#0f172a"
                   fontSize="12"
                   fontWeight="600"
                 >
                   {node.type === "rule" ? node.code : `${node.code} · ${node.label}`}
                 </text>
                 <text
-                  y={12}
+                  y={13}
                   textAnchor="middle"
-                  fill="#94a3b8"
+                  fill="#64748b"
                   fontSize="10"
                 >
                   {node.type === "rule" ? "AND" : node.sublabel.slice(0, 24)}
@@ -249,11 +250,11 @@ export function KnowledgeGraphView({
       </div>
 
       {selectedNode && (
-        <div className="mt-4 rounded-lg border border-sky-500/30 bg-sky-500/5 p-3 text-sm">
-          <p className="font-semibold text-sky-300">
+        <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm">
+          <p className="font-semibold text-[#0b57d0]">
             Nodo seleccionado: {selectedNode.label} ({selectedNode.code})
           </p>
-          <p className="text-xs text-slate-400">{selectedNode.sublabel}</p>
+          <p className="text-xs text-[#444746]">{selectedNode.sublabel}</p>
         </div>
       )}
     </div>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -15,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema Experto Respiratorio | Representación del Conocimiento",
+  title: "NeumoLógica+ | Sistema Experto de Enfermedades Respiratorias",
   description:
     "Sistema basado en reglas para detección de enfermedades respiratorias mediante encadenamiento hacia adelante, lógica proposicional, LPO y grafos de conocimiento.",
 };
@@ -26,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-[#0b1120] text-slate-100 antialiased">
+    <html lang="es" className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-screen bg-[#f0f4f9] text-[#1f1f1f] antialiased selection:bg-blue-100 selection:text-blue-900">
         {children}
       </body>
     </html>

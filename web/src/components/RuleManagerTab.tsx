@@ -155,17 +155,20 @@ export function RuleManagerTab({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <form onSubmit={handleSubmit} className="surface-elevated space-y-4 p-5 lg:col-span-5">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-5 lg:col-span-5"
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-100">
+          <h3 className="text-sm font-semibold text-[#1f1f1f]">
             {editingId ? `Editando regla ${form.code}` : "Nueva Regla de Producción"}
           </h3>
           {editingId && (
             <button
               type="button"
               onClick={resetForm}
-              className="cursor-pointer text-xs text-sky-400 hover:underline"
+              className="cursor-pointer text-xs font-medium text-[#0b57d0] hover:underline"
             >
               Cancelar edición
             </button>
@@ -174,7 +177,7 @@ export function RuleManagerTab({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="rule-code" className="mb-1 block text-xs text-slate-400">
+            <label htmlFor="rule-code" className="mb-1 block text-xs font-medium text-[#444746]">
               Código (ej. R6)
             </label>
             <input
@@ -182,11 +185,11 @@ export function RuleManagerTab({
               required
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-              className="font-mono-code w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100"
+              className="clinical-input font-mono-code"
             />
           </div>
           <div>
-            <label htmlFor="rule-priority" className="mb-1 block text-xs text-slate-400">
+            <label htmlFor="rule-priority" className="mb-1 block text-xs font-medium text-[#444746]">
               Prioridad (1-100)
             </label>
             <input
@@ -199,13 +202,13 @@ export function RuleManagerTab({
               onChange={(e) =>
                 setForm({ ...form, priority: Number(e.target.value) || 1 })
               }
-              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100"
+              className="clinical-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="rule-name" className="mb-1 block text-xs text-slate-400">
+          <label htmlFor="rule-name" className="mb-1 block text-xs font-medium text-[#444746]">
             Nombre de la regla
           </label>
           <input
@@ -214,12 +217,12 @@ export function RuleManagerTab({
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Ej. Detección de Bronquitis Aguda"
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100"
+            className="clinical-input"
           />
         </div>
 
         <div>
-          <label htmlFor="rule-disease" className="mb-1 block text-xs text-slate-400">
+          <label htmlFor="rule-disease" className="mb-1 block text-xs font-medium text-[#444746]">
             Diagnóstico consecuente (Enfermedad)
           </label>
           <select
@@ -227,7 +230,7 @@ export function RuleManagerTab({
             required
             value={form.diseaseId}
             onChange={(e) => setForm({ ...form, diseaseId: e.target.value })}
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100"
+            className="clinical-input"
           >
             {diseases.map((d) => (
               <option key={d.id} value={d.id}>
@@ -238,7 +241,7 @@ export function RuleManagerTab({
         </div>
 
         <div>
-          <label htmlFor="rule-desc" className="mb-1 block text-xs text-slate-400">
+          <label htmlFor="rule-desc" className="mb-1 block text-xs font-medium text-[#444746]">
             Descripción clínica / lógica
           </label>
           <textarea
@@ -247,40 +250,40 @@ export function RuleManagerTab({
             rows={2}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100"
+            className="clinical-input"
           />
         </div>
 
         <div>
-          <span className="mb-1.5 block text-xs text-slate-400">
+          <span className="mb-1.5 block text-xs font-medium text-[#444746]">
             Premisas (Conjunción AND — marque síntomas requeridos)
           </span>
-          <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-md border border-slate-800 bg-slate-950/60 p-2">
+          <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2.5">
             {symptoms.map((s) => {
               const cond = form.conditions.find((c) => c.symptomId === s.id);
               return (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-slate-900"
+                  className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50"
                 >
-                  <label className="flex flex-1 cursor-pointer items-center gap-2 text-xs text-slate-200">
+                  <label className="flex flex-1 cursor-pointer items-center gap-2 text-xs text-[#1f1f1f]">
                     <input
                       type="checkbox"
                       checked={Boolean(cond)}
                       onChange={() => toggleCondition(s.id)}
-                      className="accent-sky-500"
+                      className="accent-[#0b57d0]"
                     />
-                    <span className="font-mono-code text-sky-300">{s.code}</span>
+                    <span className="font-mono-code font-semibold text-[#0b57d0]">
+                      {s.code}
+                    </span>
                     <span>{s.name}</span>
                   </label>
                   {cond && (
                     <button
                       type="button"
                       onClick={() => toggleNegated(s.id)}
-                      className={`cursor-pointer rounded px-2 py-0.5 font-mono-code text-[11px] ${
-                        cond.isNegated
-                          ? "bg-amber-500/20 text-amber-300"
-                          : "bg-slate-800 text-slate-400"
+                      className={`cursor-pointer font-mono-code text-[11px] font-semibold ${
+                        cond.isNegated ? "text-amber-700" : "text-[#747775]"
                       }`}
                     >
                       {cond.isNegated ? "¬ Negado" : "Afirmativo"}
@@ -295,14 +298,16 @@ export function RuleManagerTab({
         <button
           type="submit"
           disabled={saving}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 disabled:opacity-60"
+          className="btn-brand-cta flex w-full items-center justify-center gap-2"
         >
           <Plus className="h-4 w-4" />
-          {saving
-            ? "Guardando..."
-            : editingId
-              ? "Guardar Cambios"
-              : "Crear Regla"}
+          <span>
+            {saving
+              ? "Guardando..."
+              : editingId
+                ? "Guardar Cambios"
+                : "Crear Regla"}
+          </span>
         </button>
       </form>
 
@@ -310,55 +315,57 @@ export function RuleManagerTab({
         {rules.map((rule) => (
           <article
             key={rule.id}
-            className={`rounded-xl border p-4 ${
+            className={`rounded-2xl border p-4 transition-colors ${
               rule.isActive
-                ? "border-slate-800 bg-slate-900/70"
-                : "border-slate-800/50 bg-slate-950/40 opacity-65"
+                ? "border-slate-200/80 bg-white hover:border-blue-300/80"
+                : "border-slate-200/60 bg-slate-50 opacity-65"
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono-code rounded bg-slate-800 px-2 py-0.5 text-xs font-semibold text-sky-300">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono-code text-xs font-bold text-[#0b57d0]">
                     {rule.code}
                   </span>
-                  <h4 className="text-sm font-semibold text-slate-100">
+                  <span className="text-slate-300">•</span>
+                  <h4 className="text-sm font-semibold text-[#1f1f1f]">
                     {rule.name}
                   </h4>
-                  <span className="text-xs text-slate-400">
-                    Prioridad: {rule.priority}
+                  <span className="text-slate-300">•</span>
+                  <span className="text-xs text-[#747775]">
+                    Prioridad {rule.priority}
                   </span>
                 </div>
-                <p className="font-mono-code mt-1.5 text-xs text-emerald-300">
+                <p className="font-mono-code mt-1.5 text-xs font-medium text-emerald-700">
                   {buildPropositionalFormula(rule)}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">{rule.description}</p>
+                <p className="mt-1 text-xs text-[#444746]">{rule.description}</p>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => handleToggleActive(rule)}
                   title={rule.isActive ? "Desactivar regla" : "Activar regla"}
-                  className="cursor-pointer rounded border border-slate-700 p-1.5 text-slate-300 hover:border-sky-500 hover:text-sky-300"
+                  className="cursor-pointer rounded-full p-2 text-[#444746] transition-colors hover:bg-blue-50 hover:text-[#0b57d0]"
                 >
-                  <Power className="h-3.5 w-3.5" />
+                  <Power className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => startEdit(rule)}
                   title="Editar regla"
-                  className="cursor-pointer rounded border border-slate-700 p-1.5 text-slate-300 hover:border-amber-500 hover:text-amber-300"
+                  className="cursor-pointer rounded-full p-2 text-[#444746] transition-colors hover:bg-amber-50 hover:text-amber-700"
                 >
-                  <Edit2 className="h-3.5 w-3.5" />
+                  <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(rule)}
                   title="Eliminar regla"
-                  className="cursor-pointer rounded border border-slate-700 p-1.5 text-slate-300 hover:border-rose-500 hover:text-rose-300"
+                  className="cursor-pointer rounded-full p-2 text-[#444746] transition-colors hover:bg-rose-50 hover:text-rose-700"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>

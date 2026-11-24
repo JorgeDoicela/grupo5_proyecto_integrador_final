@@ -31,7 +31,23 @@ export function KnowledgeGraphView({
   const layout = useMemo(() => {
     const symptoms = graph.nodes.filter((n) => n.type === "symptom");
     const rules = graph.nodes.filter((n) => n.type === "rule");
-    const diseaseNodes = graph.nodes.filter((n) => n.type === "disease");
+    const rawDiseases = graph.nodes.filter((n) => n.type === "disease");
+
+    // Ordenar enfermedades siguiendo el orden de las reglas (R1..Rn) para eliminar cruces
+    const ruleTargetOrder = new Map<string, number>();
+    rules.forEach((ruleNode, idx) => {
+      const inferEdge = graph.edges.find(
+        (e) => e.source === ruleNode.id && e.relation === "INFERS"
+      );
+      if (inferEdge && !ruleTargetOrder.has(inferEdge.target)) {
+        ruleTargetOrder.set(inferEdge.target, idx);
+      }
+    });
+    const diseaseNodes = [...rawDiseases].sort((a, b) => {
+      const orderA = ruleTargetOrder.get(a.id) ?? 999;
+      const orderB = ruleTargetOrder.get(b.id) ?? 999;
+      return orderA - orderB;
+    });
 
     const maxRows = Math.max(symptoms.length, rules.length, diseaseNodes.length, 1);
     const height = Math.max(380, maxRows * 64 + 68);

@@ -55,30 +55,24 @@ export function KnowledgeBaseManager({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
-            Gestionar reglas y catálogo clínico
-          </h1>
-          <p className="mt-1.5 text-sm text-[#444746]">
-            Agrega, edita o desactiva reglas, síntomas y afecciones. Los cambios se
-            reflejan inmediatamente en el evaluador y en el mapa de relaciones.
-          </p>
-        </div>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
+          Gestionar reglas
+        </h1>
 
         <button
           type="button"
           onClick={handleResetCore}
           disabled={resetting}
-          className="btn-glass-secondary flex items-center gap-1.5 px-4 py-2"
+          className="btn-glass-secondary flex items-center gap-1.5 px-3.5 py-1.5"
         >
           <RotateCcw className="h-3.5 w-3.5 text-[#0b57d0]" />
-          <span>{resetting ? "Restaurando..." : "Restaurar valores originales"}</span>
+          <span>{resetting ? "Restaurando..." : "Restaurar originales"}</span>
         </button>
       </div>
 
-      <div className="clinical-surface p-6 sm:p-8">
+      <div className="clinical-surface p-5 sm:p-6">
         {feedback && (
           <div
             role="status"

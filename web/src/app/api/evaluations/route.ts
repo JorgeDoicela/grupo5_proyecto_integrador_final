@@ -4,6 +4,7 @@ import { evaluationRepository } from "@/infrastructure/repositories/evaluation.r
 import { runEvaluationSchema } from "@/application/validation/schemas";
 import { runForwardChainingInference } from "@/domain/engine/inference-engine";
 import { handleApiError } from "@/infrastructure/http/problem-details";
+import { realtimeEventBus } from "@/infrastructure/realtime/event-bus";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       parsed.patientRef,
       inferenceResult
     );
+
+    realtimeEventBus.publish("evaluations-updated");
 
     return NextResponse.json(
       {

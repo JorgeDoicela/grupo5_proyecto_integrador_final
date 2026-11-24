@@ -21,6 +21,11 @@ git clone https://github.com/JorgeDoicela/grupo5_proyecto_integrador_final.git
 cd grupo5_proyecto_integrador_final
 cp .env.example .env
 # Editar .env y asignar una contraseña segura en POSTGRES_PASSWORD
+
+# Modo desarrollo con recarga en caliente (Hot Reload):
+docker compose -f docker-compose.dev.yml up -d --build
+
+# Modo build de producción local:
 docker compose up -d --build
 ```
 

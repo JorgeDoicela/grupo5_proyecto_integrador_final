@@ -34,17 +34,17 @@ const QUICK_CASES: Array<{ label: string; codes: string[]; ref: string }> = [
   {
     label: "Fiebre, falta de aire y tos",
     codes: ["F", "S", "C"],
-    ref: "Consulta de ejemplo 1",
+    ref: "Ejemplo 1",
   },
   {
     label: "Fiebre, tos y pérdida de olfato",
     codes: ["F", "C", "L"],
-    ref: "Consulta de ejemplo 2",
+    ref: "Ejemplo 2",
   },
   {
-    label: "Dolor de garganta y cansancio",
+    label: "Dolor de garganta y fatiga",
     codes: ["T", "A"],
-    ref: "Consulta de ejemplo 3",
+    ref: "Ejemplo 3",
   },
 ];
 
@@ -106,7 +106,7 @@ export function DiagnosticWorkspace({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (selectedIds.length === 0) {
-      setErrorMessage("Marca al menos un síntoma para obtener una orientación.");
+      setErrorMessage("Selecciona al menos un síntoma.");
       setStatus("error");
       return;
     }
@@ -116,7 +116,7 @@ export function DiagnosticWorkspace({
 
     try {
       const response = await apiClient.runEvaluation({
-        patientRef: patientRef.trim() || "Evaluación sin nombre",
+        patientRef: patientRef.trim() || "Consulta",
         symptomIds: selectedIds,
       });
       setResult(response.result);
@@ -126,7 +126,7 @@ export function DiagnosticWorkspace({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "No se pudo completar la evaluación. Intenta nuevamente."
+          : "No se pudo completar la evaluación."
       );
       setStatus("error");
     }
@@ -137,19 +137,12 @@ export function DiagnosticWorkspace({
 
   return (
     <div className="space-y-5">
-      {/* Cabecera compacta en una sola franja */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
-            ¿Qué síntomas presenta el paciente?
-          </h1>
-          <p className="text-xs text-[#444746]">
-            Selecciona los síntomas observados para obtener orientación respiratoria y recomendaciones.
-          </p>
-        </div>
+        <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
+          ¿Qué síntomas presenta el paciente?
+        </h1>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-medium text-[#747775]">Ejemplo:</span>
           {QUICK_CASES.map((item) => (
             <button
               key={item.label}
@@ -163,22 +156,10 @@ export function DiagnosticWorkspace({
         </div>
       </div>
 
-      {/* Distribución Split-Screen 50/50 ajustada a viewport */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Panel Izquierdo: Selección táctil de síntomas */}
+        {/* Panel Izquierdo: Tarjetas limpias sin texto cortado */}
         <section className="clinical-surface p-5 sm:p-6 lg:col-span-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#1f1f1f]">
-                1. Selecciona los síntomas
-              </h2>
-              <span className="text-xs font-medium text-[#0b57d0]">
-                {selectedIds.length === 0
-                  ? "Ninguno seleccionado"
-                  : `${selectedIds.length} seleccionado${selectedIds.length > 1 ? "s" : ""}`}
-              </span>
-            </div>
-
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {activeSymptoms.map((symptom) => {
                 const checked = selectedIds.includes(symptom.id);
@@ -190,32 +171,28 @@ export function DiagnosticWorkspace({
                     type="button"
                     role="checkbox"
                     aria-checked={checked}
+                    title={symptom.description}
                     onClick={() => toggleSymptom(symptom.id)}
-                    className={`flex cursor-pointer items-start justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left transition-colors ${
                       checked
-                        ? "border-blue-600 bg-blue-50/50"
+                        ? "border-blue-600 bg-blue-50/55"
                         : "border-slate-200/80 bg-[#f8fafc] hover:border-blue-300 hover:bg-white"
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3">
                       <Icon
-                        className={`mt-0.5 h-5 w-5 shrink-0 ${
+                        className={`h-5 w-5 shrink-0 ${
                           checked ? "text-[#0b57d0]" : "text-slate-500"
                         }`}
                         aria-hidden="true"
                       />
-                      <div>
-                        <p className="text-sm font-semibold text-[#1f1f1f]">
-                          {symptom.name}
-                        </p>
-                        <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#444746]">
-                          {symptom.description}
-                        </p>
-                      </div>
+                      <span className="text-sm font-semibold text-[#1f1f1f]">
+                        {symptom.name}
+                      </span>
                     </div>
 
                     <span
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
                         checked
                           ? "border-[#0b57d0] bg-[#0b57d0] text-white"
                           : "border-slate-300 bg-white"
@@ -230,18 +207,13 @@ export function DiagnosticWorkspace({
             </div>
 
             <div>
-              <label
-                htmlFor="patient-ref"
-                className="mb-1.5 block text-xs font-medium text-[#444746]"
-              >
-                Nombre del caso o paciente (opcional)
-              </label>
               <input
                 id="patient-ref"
                 type="text"
+                aria-label="Nombre del caso o paciente (opcional)"
                 value={patientRef}
                 onChange={(e) => setPatientRef(e.target.value)}
-                placeholder="Ej. Consulta de Ana · Turno mañana"
+                placeholder="Nombre del caso o paciente (opcional)"
                 className="clinical-input"
               />
             </div>
@@ -249,23 +221,21 @@ export function DiagnosticWorkspace({
             {errorMessage && (
               <div
                 role="alert"
-                className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700"
               >
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="submit"
                 disabled={status === "loading"}
                 className="btn-brand-cta flex flex-1 items-center justify-center gap-2"
               >
                 <span>
-                  {status === "loading"
-                    ? "Analizando síntomas..."
-                    : "Evaluar síntomas"}
+                  {status === "loading" ? "Evaluando..." : "Evaluar síntomas"}
                 </span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -284,210 +254,176 @@ export function DiagnosticWorkspace({
           </form>
         </section>
 
-        {/* Panel Derecho: Resultado claro y comprensible */}
-        <section className="space-y-6 lg:col-span-6">
+        {/* Panel Derecho: Resultado directo */}
+        <section className="lg:col-span-6">
           {!result ? (
-            <div className="clinical-glass flex min-h-[430px] flex-col items-center justify-center p-10 text-center">
+            <div className="clinical-glass flex h-full min-h-[340px] flex-col items-center justify-center p-8 text-center">
               <Activity
-                className="mb-4 h-10 w-10 text-blue-600/60"
+                className="mb-3 h-9 w-9 text-blue-600/55"
                 strokeWidth={1.75}
                 aria-hidden="true"
               />
-              <h2 className="text-xl font-normal text-[#1f1f1f]">
-                Tu resultado aparecerá aquí
-              </h2>
-              <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#444746]">
-                Marca los síntomas en el panel izquierdo y presiona{" "}
-                <strong className="font-semibold text-[#1f1f1f]">
-                  Evaluar síntomas
-                </strong>{" "}
-                para ver la orientación sugerida y las recomendaciones.
+              <p className="text-base font-medium text-[#1f1f1f]">
+                Resultado de la evaluación
+              </p>
+              <p className="mt-1 max-w-xs text-xs text-[#444746]">
+                Marca los síntomas y presiona Evaluar síntomas.
               </p>
             </div>
           ) : (
-            <>
-              <div className="clinical-surface p-6 sm:p-8">
-                <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
-                  <h2 className="text-base font-semibold text-[#1f1f1f]">
-                    2. Resultado de la evaluación
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={onOpenGraph}
-                    className="btn-glass-secondary flex items-center gap-1.5 px-3 py-1.5"
-                  >
-                    <GitFork className="h-3.5 w-3.5 text-[#0b57d0]" />
-                    <span>Ver en el mapa</span>
-                  </button>
-                </div>
-
-                <p className="mb-5 text-xs text-[#444746]">
-                  Síntomas evaluados:{" "}
-                  <span className="font-semibold text-[#1f1f1f]">
-                    {result.observedSymptoms.map((s) => s.name).join(" • ")}
-                  </span>
+            <div className="clinical-surface p-5 sm:p-6">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <p className="text-xs text-[#444746]">
+                  {result.observedSymptoms.map((s) => s.name).join(" • ")}
                 </p>
+                <button
+                  type="button"
+                  onClick={onOpenGraph}
+                  className="btn-glass-secondary flex items-center gap-1.5 px-3 py-1"
+                >
+                  <GitFork className="h-3.5 w-3.5 text-[#0b57d0]" />
+                  <span>Ver en mapa</span>
+                </button>
+              </div>
 
-                {!primaryDiagnosis ? (
-                  <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5">
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">
-                      No hay coincidencia completa con una afección específica
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[#444746]">
-                      Los síntomas ingresados por sí solos no permiten orientar una
-                      condición concreta. Si el malestar persiste o empeora, consulta con
-                      un profesional de salud.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {/* Tarjeta Principal Hero */}
-                    <article className="rounded-2xl border border-blue-200 bg-gradient-to-br from-cyan-50/45 via-blue-50/35 to-indigo-50/45 p-6">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-[#0b57d0]">
-                          Posible afección principal
-                        </span>
-                        <SeverityBadge severity={primaryDiagnosis.disease.severity} />
-                      </div>
-
-                      <h3 className="mt-2 text-2xl font-semibold text-[#1f1f1f]">
-                        {primaryDiagnosis.disease.name}
-                      </h3>
-
-                      <p className="mt-2 text-sm leading-relaxed text-[#444746]">
-                        {primaryDiagnosis.disease.description}
-                      </p>
-
-                      <div className="mt-4 rounded-xl border border-white/90 bg-white/90 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                          Qué se recomienda hacer
-                        </p>
-                        <p className="mt-1 text-sm leading-relaxed text-[#1f1f1f]">
-                          {primaryDiagnosis.disease.recommendations}
-                        </p>
-                      </div>
-                    </article>
-
-                    {/* Otras posibilidades si hubo coincidencia múltiple */}
-                    {secondaryDiagnoses.length > 0 && (
-                      <div>
-                        <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-[#747775]">
-                          Otras posibilidades compatibles
-                        </h4>
-                        <div className="space-y-2.5">
-                          {secondaryDiagnoses.map((diag) => (
-                            <div
-                              key={diag.ruleId}
-                              className="rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-4"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <span className="text-sm font-semibold text-[#1f1f1f]">
-                                  {diag.disease.name}
-                                </span>
-                                <SeverityBadge severity={diag.disease.severity} />
-                              </div>
-                              <p className="mt-1 text-xs leading-relaxed text-[#444746]">
-                                {diag.disease.recommendations}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Coincidencias parciales en lenguaje simple */}
-                {result.partialMatches.length > 0 && (
-                  <div className="mt-6 border-t border-slate-100 pt-5">
-                    <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#747775]">
-                      Síntomas a vigilar (coincidencia parcial)
-                    </h4>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {result.partialMatches.slice(0, 4).map((partial) => (
-                        <div
-                          key={partial.ruleId}
-                          className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-3.5 text-xs"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-[#1f1f1f]">
-                              {partial.disease.name}
-                            </span>
-                            <span className="font-semibold text-amber-700">
-                              {partial.coveragePercent}% coincidencia
-                            </span>
-                          </div>
-                          <p className="mt-1 text-[#444746]">
-                            Vigilar si aparece: {partial.missingConditions.join(", ")}
-                          </p>
-                        </div>
-                      ))}
+              {!primaryDiagnosis ? (
+                <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5">
+                  <h2 className="text-base font-semibold text-[#1f1f1f]">
+                    Sin coincidencia completa
+                  </h2>
+                  <p className="mt-1 text-sm text-[#444746]">
+                    Los síntomas marcados no completan una afección específica. Si el
+                    malestar continúa, consulta con un médico.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <article className="rounded-2xl border border-blue-200 bg-gradient-to-br from-cyan-50/45 via-blue-50/35 to-indigo-50/45 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[#0b57d0]">
+                        Posible afección
+                      </span>
+                      <SeverityBadge severity={primaryDiagnosis.disease.severity} />
                     </div>
-                  </div>
-                )}
 
-                {/* Acordeón opcional: explicación paso a paso (para docencia/auditoría) */}
-                <div className="mt-6 border-t border-slate-100 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowExplanation((prev) => !prev)}
-                    className="flex w-full cursor-pointer items-center justify-between text-left text-xs font-semibold text-[#0b57d0] hover:underline"
-                  >
-                    <span>
-                      {showExplanation
-                        ? "Ocultar cómo se obtuvo este resultado"
-                        : "Ver cómo se obtuvo este resultado (detalle de reglas)"}
-                    </span>
-                    {showExplanation ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </button>
+                    <h2 className="mt-1.5 text-2xl font-semibold text-[#1f1f1f]">
+                      {primaryDiagnosis.disease.name}
+                    </h2>
 
-                  {showExplanation && (
-                    <div className="mt-3 space-y-2">
-                      {result.inferenceTrace.map((step) => (
+                    <p className="mt-1.5 text-sm leading-relaxed text-[#444746]">
+                      {primaryDiagnosis.disease.description}
+                    </p>
+
+                    <div className="mt-4 rounded-xl border border-white/90 bg-white/90 p-3.5">
+                      <p className="text-xs font-semibold text-emerald-700">
+                        Recomendación
+                      </p>
+                      <p className="mt-1 text-sm text-[#1f1f1f]">
+                        {primaryDiagnosis.disease.recommendations}
+                      </p>
+                    </div>
+                  </article>
+
+                  {secondaryDiagnoses.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-[#747775]">
+                        También compatible
+                      </p>
+                      {secondaryDiagnoses.map((diag) => (
                         <div
-                          key={step.ruleId}
-                          className={`rounded-xl border p-3 text-xs ${
-                            step.fired
-                              ? "border-emerald-200 bg-emerald-50/50"
-                              : "border-slate-200/70 bg-[#f8fafc]"
-                          }`}
+                          key={diag.ruleId}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200/80 bg-[#f8fafc] px-4 py-3 text-sm"
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-1.5">
-                              {step.fired && (
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                              )}
-                              <span className="font-semibold text-[#1f1f1f]">
-                                {step.diseaseName}
-                              </span>
-                              <span className="text-slate-300">•</span>
-                              <span className="font-mono-code text-[#0b57d0]">
-                                {step.propositionalFormula}
-                              </span>
-                            </div>
-                            <span
-                              className={`font-semibold ${
-                                step.fired ? "text-emerald-700" : "text-[#747775]"
-                              }`}
-                            >
-                              {step.fired ? "Cumple" : "No cumple"}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-[#444746]">
-                            {step.satisfiedCount} de {step.totalConditions} condiciones
-                            cumplidas.
-                          </p>
+                          <span className="font-semibold text-[#1f1f1f]">
+                            {diag.disease.name}
+                          </span>
+                          <SeverityBadge severity={diag.disease.severity} />
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
+              )}
+
+              {result.partialMatches.length > 0 && (
+                <div className="mt-5 border-t border-slate-100 pt-4">
+                  <p className="mb-2.5 text-xs font-semibold text-[#747775]">
+                    Coincidencia parcial
+                  </p>
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {result.partialMatches.slice(0, 4).map((partial) => (
+                      <div
+                        key={partial.ruleId}
+                        className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-3 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-[#1f1f1f]">
+                            {partial.disease.name}
+                          </span>
+                          <span className="font-semibold text-amber-700">
+                            {partial.coveragePercent}%
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[#444746]">
+                          Falta: {partial.missingConditions.join(", ")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5 border-t border-slate-100 pt-3.5">
+                <button
+                  type="button"
+                  onClick={() => setShowExplanation((prev) => !prev)}
+                  className="flex w-full cursor-pointer items-center justify-between text-left text-xs font-semibold text-[#0b57d0] hover:underline"
+                >
+                  <span>
+                    {showExplanation ? "Ocultar detalle lógico" : "Ver detalle lógico"}
+                  </span>
+                  {showExplanation ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+
+                {showExplanation && (
+                  <div className="mt-3 space-y-1.5">
+                    {result.inferenceTrace.map((step) => (
+                      <div
+                        key={step.ruleId}
+                        className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${
+                          step.fired
+                            ? "border-emerald-200 bg-emerald-50/50"
+                            : "border-slate-200/70 bg-[#f8fafc]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {step.fired && (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          )}
+                          <span className="font-semibold text-[#1f1f1f]">
+                            {step.diseaseName}
+                          </span>
+                          <span className="font-mono-code text-[#0b57d0]">
+                            {step.propositionalFormula}
+                          </span>
+                        </div>
+                        <span
+                          className={`font-semibold ${
+                            step.fired ? "text-emerald-700" : "text-[#747775]"
+                          }`}
+                        >
+                          {step.satisfiedCount}/{step.totalConditions}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </>
+            </div>
           )}
         </section>
       </div>

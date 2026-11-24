@@ -9,7 +9,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  RefreshCw,
   SlidersHorizontal,
   Stethoscope,
   X,
@@ -45,7 +44,7 @@ export function ExpertSystemShell({
   const [lastInference, setLastInference] = useState<InferenceResult | null>(
     null
   );
-  const [syncing, setSyncing] = useState(false);
+  const [liveConnected, setLiveConnected] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -57,6 +56,67 @@ export function ExpertSystemShell({
       // Ignorar si storage no está disponible
     }
   }, []);
+
+  const refreshKnowledgeBase = useCallback(async () => {
+    const nextKb = await apiClient.getKnowledgeBase();
+    setKb(nextKb);
+  }, []);
+
+  const refreshEvaluations = useCallback(async () => {
+    const nextEval = await apiClient.listEvaluations();
+    setEvaluations(nextEval.data);
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    const [nextKb, nextEval] = await Promise.all([
+      apiClient.getKnowledgeBase(),
+      apiClient.listEvaluations(),
+    ]);
+    setKb(nextKb);
+    setEvaluations(nextEval.data);
+  }, []);
+
+  // Sincronización automática en tiempo real mediante Server-Sent Events (SSE)
+  useEffect(() => {
+    const eventSource = new EventSource("/api/events");
+
+    eventSource.addEventListener("connected", () => {
+      setLiveConnected(true);
+    });
+
+    eventSource.addEventListener("update", (event: MessageEvent) => {
+      try {
+        const parsed = JSON.parse(String(event.data)) as {
+          topic?: "knowledge-updated" | "evaluations-updated";
+        };
+        if (parsed.topic === "knowledge-updated") {
+          void refreshKnowledgeBase();
+        } else if (parsed.topic === "evaluations-updated") {
+          void refreshEvaluations();
+        } else {
+          void refreshAll();
+        }
+      } catch {
+        void refreshAll();
+      }
+    });
+
+    eventSource.onerror = () => {
+      setLiveConnected(false);
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refreshAll();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      eventSource.close();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [refreshAll, refreshEvaluations, refreshKnowledgeBase]);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -70,24 +130,9 @@ export function ExpertSystemShell({
     });
   };
 
-  const refreshAll = useCallback(async () => {
-    setSyncing(true);
-    try {
-      const [nextKb, nextEval] = await Promise.all([
-        apiClient.getKnowledgeBase(),
-        apiClient.listEvaluations(),
-      ]);
-      setKb(nextKb);
-      setEvaluations(nextEval.data);
-    } finally {
-      setSyncing(false);
-    }
-  }, []);
-
   const handleEvaluationSaved = async (result: InferenceResult) => {
     setLastInference(result);
-    const nextEval = await apiClient.listEvaluations();
-    setEvaluations(nextEval.data);
+    await refreshEvaluations();
   };
 
   const navItems: Array<{
@@ -131,7 +176,7 @@ export function ExpertSystemShell({
 
   return (
     <div className="relative flex min-h-screen overflow-x-clip bg-[#f0f4f9]">
-      {/* Auroras ambientales sutiles (Ateneo+ Liquid Glassmorphism) */}
+      {/* Auroras ambientales sutiles */}
       <div
         className="pointer-events-none fixed -top-32 -left-32 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-cyan-400/20 via-blue-500/15 to-transparent blur-3xl"
         aria-hidden="true"
@@ -145,15 +190,14 @@ export function ExpertSystemShell({
         aria-hidden="true"
       />
 
-      {/* Sidebar Izquierdo Desktop (Material 3 / Liquid Glass) */}
+      {/* Sidebar Izquierdo */}
       <aside
         aria-label="Navegación principal"
         className={`sticky top-0 z-40 hidden h-screen shrink-0 flex-col justify-between border-r border-slate-200/70 bg-white/85 backdrop-blur-md transition-[width] duration-200 lg:flex ${
-          collapsed ? "w-[74px]" : "w-[248px]"
+          collapsed ? "w-[74px]" : "w-[236px]"
         }`}
       >
         <div>
-          {/* Marca */}
           <div
             className={`flex h-16 items-center border-b border-slate-200/60 px-4 ${
               collapsed ? "justify-center" : "justify-between"
@@ -171,19 +215,16 @@ export function ExpertSystemShell({
                 aria-hidden="true"
               />
               {!collapsed && (
-                <div className="truncate">
-                  <span className="text-base font-black tracking-tight text-slate-900">
-                    NEUMOLÓGICA
-                    <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      +
-                    </span>
+                <span className="truncate text-base font-black tracking-tight text-slate-900">
+                  NEUMOLÓGICA
+                  <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    +
                   </span>
-                </div>
+                </span>
               )}
             </button>
           </div>
 
-          {/* Enlaces de navegación */}
           <nav className="space-y-1 p-3">
             {navItems.map((item) => {
               const active = activeTab === item.id;
@@ -216,36 +257,24 @@ export function ExpertSystemShell({
           </nav>
         </div>
 
-        {/* Pie del Sidebar */}
-        <div className="space-y-2 border-t border-slate-200/60 p-3">
-          {!collapsed && (
-            <div className="px-2 pb-1 text-[11px] leading-relaxed text-[#747775]">
-              <p className="font-medium text-[#444746]">
-                {kb.symptoms.filter((s) => s.isActive).length} síntomas •{" "}
-                {kb.rules.filter((r) => r.isActive).length} reglas •{" "}
-                {kb.diseases.length} afecciones
-              </p>
-              <p className="mt-0.5">UBE • Grupo 5</p>
-            </div>
-          )}
-
+        {/* Pie minimalista sin botón manual de recarga */}
+        <div className="border-t border-slate-200/60 p-3">
           <div
-            className={`flex items-center gap-1.5 ${
-              collapsed ? "flex-col" : "justify-between"
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "justify-between px-1"
             }`}
           >
-            <button
-              type="button"
-              onClick={refreshAll}
-              disabled={syncing}
-              title="Actualizar datos"
-              className="btn-glass-secondary flex flex-1 items-center justify-center gap-1.5 px-3 py-1.5"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 text-[#0b57d0] ${syncing ? "animate-spin" : ""}`}
-              />
-              {!collapsed && <span>Actualizar</span>}
-            </button>
+            {!collapsed && (
+              <div className="flex items-center gap-2 text-[11px] text-[#747775]">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    liveConnected ? "bg-emerald-500" : "bg-slate-300"
+                  }`}
+                  title={liveConnected ? "Sincronización automática activa" : "Reconectando..."}
+                />
+                <span>UBE • Grupo 5</span>
+              </div>
+            )}
 
             <button
               type="button"
@@ -264,9 +293,9 @@ export function ExpertSystemShell({
         </div>
       </aside>
 
-      {/* Contenedor derecho (Header móvil + Main compacto) */}
+      {/* Contenedor principal */}
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        {/* Cabecera solo para móvil / tablet */}
+        {/* Cabecera móvil */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-200/60 bg-white/85 px-4 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-2.5">
             <button
@@ -286,19 +315,14 @@ export function ExpertSystemShell({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={refreshAll}
-            disabled={syncing}
-            className="btn-glass-secondary flex items-center gap-1 px-3 py-1"
-          >
-            <RefreshCw
-              className={`h-3.5 w-3.5 text-[#0b57d0] ${syncing ? "animate-spin" : ""}`}
-            />
-          </button>
+          <span
+            className={`h-2 w-2 rounded-full ${
+              liveConnected ? "bg-emerald-500" : "bg-slate-300"
+            }`}
+            aria-label={liveConnected ? "En vivo" : "Reconectando"}
+          />
         </header>
 
-        {/* Menú desplegable móvil */}
         {mobileMenuOpen && (
           <nav className="border-b border-slate-200 bg-white/95 p-3 backdrop-blur-md lg:hidden">
             <div className="space-y-1">
@@ -331,7 +355,6 @@ export function ExpertSystemShell({
           </nav>
         )}
 
-        {/* Área de trabajo principal compacta para encajar en viewport */}
         <main className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-5 sm:px-6 lg:px-8">
           {activeTab === "diagnose" && (
             <DiagnosticWorkspace
@@ -366,7 +389,7 @@ export function ExpertSystemShell({
           {activeTab === "history" && (
             <EvaluationHistoryView
               evaluations={evaluations}
-              onRefresh={refreshAll}
+              onRefresh={refreshEvaluations}
               onGoToEvaluate={() => selectTab("diagnose")}
             />
           )}

@@ -36,39 +36,34 @@ export function FormalLogicView({ formalizations }: FormalLogicViewProps) {
     .join(" y ");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
           Reglas lógicas y tablas de verdad
         </h1>
-        <p className="mt-1.5 text-sm text-[#444746]">
-          Consulta la base académica de cada regla: su formulación en lenguaje natural,
-          expresión lógica, circuito de compuertas y tabla de combinaciones.
-        </p>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {formalizations.map((item) => {
+            const active = item.ruleId === selected.ruleId;
+            return (
+              <button
+                key={item.ruleId}
+                type="button"
+                onClick={() => setSelectedRuleId(item.ruleId)}
+                className={`cursor-pointer rounded-full px-3.5 py-1 text-xs font-medium transition-all ${
+                  active
+                    ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
+                    : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                {item.ruleCode} • {item.diseaseName}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Selector horizontal tipo chips (Ateneo+) */}
-      <div className="flex flex-wrap items-center gap-2">
-        {formalizations.map((item) => {
-          const active = item.ruleId === selected.ruleId;
-          return (
-            <button
-              key={item.ruleId}
-              type="button"
-              onClick={() => setSelectedRuleId(item.ruleId)}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                active
-                  ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
-                  : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
-              }`}
-            >
-              {item.ruleCode} • {item.diseaseName}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Bloque Izquierdo: Resumen claro y formalización */}
         <section className="clinical-surface space-y-5 p-6 sm:p-8 lg:col-span-5">
           <div>

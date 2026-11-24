@@ -40,47 +40,37 @@ export function EvaluationHistoryView({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
-            Historial de evaluaciones
-          </h1>
-          <p className="mt-1.5 text-sm text-[#444746]">
-            Revisa los casos evaluados recientemente, sus síntomas y la orientación emitida.
-          </p>
-        </div>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
+          Historial de evaluaciones
+        </h1>
 
-        {/* Cápsula de búsqueda en cristal líquido (Patrón Ateneo+) */}
         {evaluations.length > 0 && (
-          <div className="flex w-full max-w-sm items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 backdrop-blur-md transition-all focus-within:border-blue-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20">
+          <div className="flex w-full max-w-xs items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 px-3.5 py-1.5 backdrop-blur-md transition-all focus-within:border-blue-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20">
             <Search className="h-4 w-4 text-[#0b57d0]" aria-hidden="true" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por caso, síntoma o afección..."
+              placeholder="Buscar..."
               className="w-full bg-transparent text-xs text-[#1f1f1f] outline-none placeholder:text-[#747775]"
             />
           </div>
         )}
       </div>
 
-      <div className="clinical-surface p-6 sm:p-8">
+      <div className="clinical-surface p-6">
         {evaluations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-10 text-center">
+          <div className="flex flex-col items-center justify-center py-12 text-center">
             <Clock className="mb-3 h-8 w-8 text-blue-600/60" aria-hidden="true" />
             <p className="text-base font-medium text-[#1f1f1f]">
-              Todavía no hay evaluaciones guardadas
-            </p>
-            <p className="mt-1 max-w-sm text-xs text-[#444746]">
-              Cuando evalúes un conjunto de síntomas, el resultado quedará registrado aquí
-              para consulta posterior.
+              Aún no hay evaluaciones
             </p>
             <button
               type="button"
               onClick={onGoToEvaluate}
-              className="btn-brand-cta mt-5 inline-flex items-center gap-2"
+              className="btn-brand-cta mt-4 inline-flex items-center gap-2"
             >
               <span>Evaluar síntomas</span>
               <ArrowRight className="h-4 w-4" />

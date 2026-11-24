@@ -34,14 +34,15 @@ export function KnowledgeGraphView({
     const diseaseNodes = graph.nodes.filter((n) => n.type === "disease");
 
     const maxRows = Math.max(symptoms.length, rules.length, diseaseNodes.length, 1);
-    const height = Math.max(460, maxRows * 84 + 80);
-    const width = 980;
+    const height = Math.max(380, maxRows * 64 + 68);
+    const width = 960;
 
     const distributeY = (count: number, index: number): number => {
       if (count === 1) return height / 2;
-      const padding = 72;
-      const step = (height - padding * 2) / (count - 1);
-      return padding + index * step;
+      const topPad = 56;
+      const bottomPad = 36;
+      const step = (height - topPad - bottomPad) / (count - 1);
+      return topPad + index * step;
     };
 
     const positioned = new Map<string, PositionedNode>();
@@ -50,10 +51,10 @@ export function KnowledgeGraphView({
       positioned.set(n.id, { ...n, x: 145, y: distributeY(symptoms.length, idx) });
     });
     rules.forEach((n, idx) => {
-      positioned.set(n.id, { ...n, x: 490, y: distributeY(rules.length, idx) });
+      positioned.set(n.id, { ...n, x: 480, y: distributeY(rules.length, idx) });
     });
     diseaseNodes.forEach((n, idx) => {
-      positioned.set(n.id, { ...n, x: 835, y: distributeY(diseaseNodes.length, idx) });
+      positioned.set(n.id, { ...n, x: 815, y: distributeY(diseaseNodes.length, idx) });
     });
 
     return { width, height, positioned };
@@ -106,87 +107,83 @@ export function KnowledgeGraphView({
     : null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
-          Mapa de relaciones clínicas
-        </h1>
-        <p className="mt-1.5 text-sm text-[#444746]">
-          Explora cómo se conectan los síntomas con cada afección respiratoria. Selecciona
-          una afección o haz clic en cualquier nodo para resaltar su ruta.
-        </p>
+    <div className="flex flex-1 flex-col gap-4">
+      {/* Cabecera compacta: título + filtros en una sola franja */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
+            Mapa de relaciones clínicas
+          </h1>
+          <p className="text-xs text-[#444746]">
+            Selecciona una afección o haz clic en un nodo para resaltar su ruta completa.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setFocusedDiseaseId(null);
+              setSelectedNodeId(null);
+            }}
+            className={`cursor-pointer rounded-full px-3.5 py-1 text-xs font-medium transition-all ${
+              focusedDiseaseId === null
+                ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
+                : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
+            }`}
+          >
+            Todas
+          </button>
+          {diseases.map((d) => {
+            const active = focusedDiseaseId === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => {
+                  setSelectedNodeId(null);
+                  setFocusedDiseaseId(active ? null : d.id);
+                }}
+                className={`cursor-pointer rounded-full px-3.5 py-1 text-xs font-medium transition-all ${
+                  active
+                    ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
+                    : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                {d.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Chips de filtrado por afección (Patrón Ateneo+) */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setFocusedDiseaseId(null);
-            setSelectedNodeId(null);
-          }}
-          className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-            focusedDiseaseId === null
-              ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
-              : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
-          }`}
-        >
-          Ver todas
-        </button>
-        {diseases.map((d) => {
-          const active = focusedDiseaseId === d.id;
-          return (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => {
-                setSelectedNodeId(null);
-                setFocusedDiseaseId(active ? null : d.id);
-              }}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                active
-                  ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/25"
-                  : "border border-slate-200/80 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white"
-              }`}
-            >
-              {d.name}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="clinical-surface p-6 sm:p-8">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      {/* Tarjeta de grafo ajustada al viewport para verse completa sin scroll */}
+      <div className="clinical-surface flex flex-1 flex-col p-4 sm:p-5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-4 text-xs text-[#444746]">
             <span className="flex items-center gap-1.5 font-medium">
               <span className="h-2.5 w-2.5 rounded-full bg-cyan-500" /> Síntoma
             </span>
             <span className="flex items-center gap-1.5 font-medium">
-              <span className="h-2.5 w-2.5 rounded-sm bg-blue-600" /> Regla de combinación
+              <span className="h-2.5 w-2.5 rounded-sm bg-blue-600" /> Regla
             </span>
             <span className="flex items-center gap-1.5 font-medium">
               <span className="h-2.5 w-2.5 rounded-full bg-indigo-600" /> Posible afección
             </span>
           </div>
 
-          {hasFilter && (
-            <button
-              type="button"
-              onClick={() => {
-                setFocusedDiseaseId(null);
-                setSelectedNodeId(null);
-              }}
-              className="btn-glass-secondary px-3 py-1"
-            >
-              Mostrar todo
-            </button>
+          {selectedNode && (
+            <span className="text-xs font-medium text-[#0b57d0]">
+              Seleccionado: {selectedNode.label}
+            </span>
           )}
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-3">
+        <div className="flex flex-1 items-center justify-center overflow-x-auto rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-2">
           <svg
             viewBox={`0 0 ${layout.width} ${layout.height}`}
-            className="h-auto w-full min-w-[740px]"
+            preserveAspectRatio="xMidYMid meet"
+            className="h-[calc(100vh-215px)] min-h-[360px] max-h-[560px] w-full min-w-[680px]"
             role="img"
             aria-label="Mapa visual de relaciones entre síntomas, reglas y afecciones respiratorias"
           >
@@ -215,13 +212,13 @@ export function KnowledgeGraphView({
               </marker>
             </defs>
 
-            <text x="145" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
+            <text x="145" y="22" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
               SÍNTOMAS
             </text>
-            <text x="490" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
+            <text x="480" y="22" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
               REGLA
             </text>
-            <text x="835" y="28" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
+            <text x="815" y="22" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700">
               POSIBLE AFECCIÓN
             </text>
 
@@ -230,13 +227,12 @@ export function KnowledgeGraphView({
               const to = layout.positioned.get(edge.target);
               if (!from || !to) return null;
 
-              const startX = from.x + (from.type === "rule" ? 46 : 98);
-              const endX = to.x - (to.type === "rule" ? 46 : 98);
+              const startX = from.x + (from.type === "rule" ? 42 : 96);
+              const endX = to.x - (to.type === "rule" ? 42 : 96);
               const midX = (startX + endX) / 2;
 
-              const isHighlighted = hasFilter
-                ? activeNodeSet.has(edge.source) && activeNodeSet.has(edge.target)
-                : activeNodeSet.has(edge.source) && activeNodeSet.has(edge.target);
+              const isHighlighted =
+                activeNodeSet.has(edge.source) && activeNodeSet.has(edge.target);
 
               const strokeColor = isHighlighted
                 ? "#2563eb"
@@ -252,7 +248,7 @@ export function KnowledgeGraphView({
                   stroke={strokeColor}
                   strokeWidth={isHighlighted ? 2.6 : 1.5}
                   strokeDasharray={edge.relation === "NEGATED_PREMISE" ? "5 4" : undefined}
-                  opacity={hasFilter && !isHighlighted ? 0.18 : 0.95}
+                  opacity={hasFilter && !isHighlighted ? 0.16 : 0.95}
                   markerEnd={isHighlighted ? "url(#arrow-active)" : "url(#arrow-default)"}
                 />
               );
@@ -277,8 +273,8 @@ export function KnowledgeGraphView({
                     ? "#2563eb"
                     : "#6366f1";
 
-              const rectWidth = node.type === "rule" ? 88 : 194;
-              const rectHeight = 50;
+              const rectWidth = node.type === "rule" ? 80 : 190;
+              const rectHeight = 40;
 
               return (
                 <g
@@ -289,20 +285,20 @@ export function KnowledgeGraphView({
                     setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
                   }}
                   className="cursor-pointer"
-                  opacity={dimmed ? 0.28 : 1}
+                  opacity={dimmed ? 0.25 : 1}
                 >
                   <rect
                     x={-rectWidth / 2}
                     y={-rectHeight / 2}
                     width={rectWidth}
                     height={rectHeight}
-                    rx={node.type === "rule" ? 12 : 25}
+                    rx={node.type === "rule" ? 10 : 20}
                     fill={fill}
                     stroke={stroke}
                     strokeWidth={isHighlighted ? 2.4 : 1.3}
                   />
                   <text
-                    y={node.type === "rule" ? 4 : 4}
+                    y={4}
                     textAnchor="middle"
                     fill="#0f172a"
                     fontSize="12"
@@ -315,15 +311,6 @@ export function KnowledgeGraphView({
             })}
           </svg>
         </div>
-
-        {selectedNode && (
-          <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm">
-            <p className="font-semibold text-[#0b57d0]">
-              {selectedNode.label} ({selectedNode.code})
-            </p>
-            <p className="text-xs text-[#444746]">{selectedNode.sublabel}</p>
-          </div>
-        )}
       </div>
     </div>
   );

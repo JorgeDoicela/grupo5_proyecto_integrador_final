@@ -136,27 +136,26 @@ export function DiagnosticWorkspace({
   const secondaryDiagnoses = result?.matchedDiagnoses.slice(1) ?? [];
 
   return (
-    <div className="space-y-8">
-      {/* Cabecera limpia y directa */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-5">
+      {/* Cabecera compacta en una sola franja */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
+          <h1 className="text-2xl font-normal leading-tight text-[#1f1f1f]">
             ¿Qué síntomas presenta el paciente?
           </h1>
-          <p className="mt-1.5 text-sm text-[#444746]">
-            Selecciona los síntomas observados para recibir una orientación respiratoria
-            inmediata y recomendaciones de cuidado.
+          <p className="text-xs text-[#444746]">
+            Selecciona los síntomas observados para obtener orientación respiratoria y recomendaciones.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[#747775]">Probar ejemplo:</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-medium text-[#747775]">Ejemplo:</span>
           {QUICK_CASES.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={() => applyQuickCase(item.codes, item.ref)}
-              className="btn-glass-secondary px-3 py-1.5"
+              className="btn-glass-secondary px-3 py-1"
             >
               {item.label}
             </button>
@@ -164,11 +163,11 @@ export function DiagnosticWorkspace({
         </div>
       </div>
 
-      {/* Distribución Split-Screen 50/50 (Ateneo+) */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      {/* Distribución Split-Screen 50/50 ajustada a viewport */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Panel Izquierdo: Selección táctil de síntomas */}
-        <section className="clinical-surface p-6 sm:p-8 lg:col-span-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <section className="clinical-surface p-5 sm:p-6 lg:col-span-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-[#1f1f1f]">
                 1. Selecciona los síntomas

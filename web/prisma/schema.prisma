@@ -1,0 +1,97 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Symptom {
+  id          String        @id @default(uuid())
+  code        String        @unique @db.VarChar(16)
+  name        String        @db.VarChar(120)
+  englishName String        @map("english_name") @db.VarChar(120)
+  description String        @db.Text
+  isActive    Boolean       @default(true) @map("is_active")
+  isCore      Boolean       @default(false) @map("is_core")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  ruleLinks   RuleSymptom[]
+
+  @@index([isActive])
+  @@map("symptoms")
+}
+
+model Disease {
+  id              String   @id @default(uuid())
+  code            String   @unique @db.VarChar(32)
+  name            String   @db.VarChar(120)
+  englishName     String   @map("english_name") @db.VarChar(120)
+  description     String   @db.Text
+  severity        Severity @default(MEDIUM)
+  recommendations String   @db.Text
+  isCore          Boolean  @default(false) @map("is_core")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  rules           Rule[]
+
+  @@index([severity])
+  @@map("diseases")
+}
+
+model Rule {
+  id          String        @id @default(uuid())
+  code        String        @unique @db.VarChar(16)
+  name        String        @db.VarChar(160)
+  description String        @db.Text
+  diseaseId   String        @map("disease_id")
+  priority    Int           @default(1)
+  isActive    Boolean       @default(true) @map("is_active")
+  isCore      Boolean       @default(false) @map("is_core")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  disease    Disease       @relation(fields: [diseaseId], references: [id], onDelete: Cascade)
+  conditions RuleSymptom[]
+
+  @@index([diseaseId])
+  @@index([isActive])
+  @@map("rules")
+}
+
+model RuleSymptom {
+  id        String  @id @default(uuid())
+  ruleId    String  @map("rule_id")
+  symptomId String  @map("symptom_id")
+  isNegated Boolean @default(false) @map("is_negated")
+
+  rule    Rule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  symptom Symptom @relation(fields: [symptomId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, symptomId])
+  @@index([ruleId])
+  @@index([symptomId])
+  @@map("rule_symptoms")
+}
+
+model Evaluation {
+  id               String   @id @default(uuid())
+  patientRef       String   @map("patient_ref") @db.VarChar(120)
+  selectedSymptoms Json     @map("selected_symptoms")
+  matchedDiagnoses Json     @map("matched_diagnoses")
+  partialMatches   Json     @map("partial_matches")
+  inferenceTrace   Json     @map("inference_trace")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("evaluations")
+}

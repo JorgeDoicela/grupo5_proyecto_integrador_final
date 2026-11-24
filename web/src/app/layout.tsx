@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "NeumoLógica+ | Sistema Experto de Enfermedades Respiratorias",
   description:
     "Sistema basado en reglas para detección de enfermedades respiratorias mediante encadenamiento hacia adelante, lógica proposicional, LPO y grafos de conocimiento.",
+  icons: {
+    icon: [
+      { url: "/ube-logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/ube-logo.svg",
+  },
 };
 
 export default function RootLayout({

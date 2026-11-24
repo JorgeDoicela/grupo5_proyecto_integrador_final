@@ -44,7 +44,7 @@ export function CatalogManagerTab({
           englishName: englishName.trim(),
           description: description.trim(),
         });
-        onFeedback("success", `Síntoma ${code.toUpperCase()} creado.`);
+        onFeedback("success", `Síntoma "${name.trim()}" agregado.`);
       } else {
         await apiClient.createDisease({
           code: code.trim().toUpperCase(),
@@ -54,7 +54,7 @@ export function CatalogManagerTab({
           severity,
           recommendations: recommendations.trim(),
         });
-        onFeedback("success", `Enfermedad ${code.toUpperCase()} creada.`);
+        onFeedback("success", `Afección "${name.trim()}" agregada.`);
       }
       setCode("");
       setName("");
@@ -65,7 +65,7 @@ export function CatalogManagerTab({
     } catch (error: unknown) {
       onFeedback(
         "error",
-        error instanceof Error ? error.message : "Error al guardar registro."
+        error instanceof Error ? error.message : "No se pudo guardar el registro."
       );
     } finally {
       setSaving(false);
@@ -80,11 +80,11 @@ export function CatalogManagerTab({
         await apiClient.deleteDisease(id);
       }
       await onRefresh();
-      onFeedback("success", `${label} eliminado.`);
+      onFeedback("success", `"${label}" eliminado.`);
     } catch (error: unknown) {
       onFeedback(
         "error",
-        error instanceof Error ? error.message : "Error al eliminar registro."
+        error instanceof Error ? error.message : "No se pudo eliminar el registro."
       );
     }
   };
@@ -96,13 +96,13 @@ export function CatalogManagerTab({
         className="space-y-3.5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-5 lg:col-span-5"
       >
         <h3 className="text-sm font-semibold text-[#1f1f1f]">
-          {mode === "symptoms" ? "Nuevo Síntoma" : "Nueva Enfermedad"}
+          {mode === "symptoms" ? "Agregar síntoma" : "Agregar afección"}
         </h3>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="cat-code" className="mb-1 block text-xs font-medium text-[#444746]">
-              Código
+              Código corto
             </label>
             <input
               id="cat-code"
@@ -130,14 +130,14 @@ export function CatalogManagerTab({
 
         <div>
           <label htmlFor="cat-name" className="mb-1 block text-xs font-medium text-[#444746]">
-            Nombre en español
+            Nombre
           </label>
           <input
             id="cat-name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={mode === "symptoms" ? "Dolor torácico" : "Bronquitis aguda"}
+            placeholder={mode === "symptoms" ? "Dolor de pecho" : "Bronquitis aguda"}
             className="clinical-input"
           />
         </div>
@@ -145,7 +145,7 @@ export function CatalogManagerTab({
         {mode === "diseases" && (
           <div>
             <label htmlFor="cat-sev" className="mb-1 block text-xs font-medium text-[#444746]">
-              Severidad clínica
+              Nivel de atención
             </label>
             <select
               id="cat-sev"
@@ -153,10 +153,10 @@ export function CatalogManagerTab({
               onChange={(e) => setSeverity(e.target.value as SeverityLevel)}
               className="clinical-input"
             >
-              <option value="LOW">Baja (LOW)</option>
-              <option value="MEDIUM">Moderada (MEDIUM)</option>
-              <option value="HIGH">Alta (HIGH)</option>
-              <option value="CRITICAL">Crítica (CRITICAL)</option>
+              <option value="LOW">Atención leve</option>
+              <option value="MEDIUM">Consulta sugerida</option>
+              <option value="HIGH">Atención pronta</option>
+              <option value="CRITICAL">Atención urgente</option>
             </select>
           </div>
         )}
@@ -178,7 +178,7 @@ export function CatalogManagerTab({
         {mode === "diseases" && (
           <div>
             <label htmlFor="cat-rec" className="mb-1 block text-xs font-medium text-[#444746]">
-              Recomendación clínica
+              Recomendación de cuidado
             </label>
             <textarea
               id="cat-rec"
@@ -201,8 +201,8 @@ export function CatalogManagerTab({
             {saving
               ? "Guardando..."
               : mode === "symptoms"
-                ? "Agregar Síntoma"
-                : "Agregar Enfermedad"}
+                ? "Guardar síntoma"
+                : "Guardar afección"}
           </span>
         </button>
       </form>
@@ -221,7 +221,6 @@ export function CatalogManagerTab({
                     </span>
                     <span className="text-slate-300">•</span>
                     <span className="text-sm font-semibold text-[#1f1f1f]">{s.name}</span>
-                    <span className="text-xs text-[#747775]">({s.englishName})</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-[#444746]">
                     {s.description}
@@ -244,10 +243,6 @@ export function CatalogManagerTab({
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono-code text-xs font-bold text-indigo-700">
-                      {d.code}
-                    </span>
-                    <span className="text-slate-300">•</span>
                     <span className="text-sm font-semibold text-[#1f1f1f]">{d.name}</span>
                     <span className="text-slate-300">•</span>
                     <SeverityBadge severity={d.severity} />
@@ -262,7 +257,7 @@ export function CatalogManagerTab({
                 <button
                   type="button"
                   onClick={() => handleDelete(d.id, d.name)}
-                  title="Eliminar enfermedad"
+                  title="Eliminar afección"
                   className="cursor-pointer rounded-full p-2 text-[#444746] transition-colors hover:bg-rose-50 hover:text-rose-700"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -3,11 +3,11 @@
 import { useCallback, useState } from "react";
 import {
   Activity,
-  Binary,
+  BookOpen,
   Clock,
-  Database,
   GitFork,
   RefreshCw,
+  SlidersHorizontal,
   Stethoscope,
 } from "lucide-react";
 import type {
@@ -69,31 +69,34 @@ export function ExpertSystemShell({
   }> = [
     {
       id: "diagnose",
-      label: "Evaluador Clínico",
+      label: "Evaluar síntomas",
       activeClass: "border-cyan-600 text-cyan-700 font-semibold",
       icon: <Activity className="h-4 w-4" />,
     },
     {
       id: "graph",
-      label: "Grafo de Conocimiento",
+      label: "Mapa de relaciones",
       activeClass: "border-blue-600 text-blue-700 font-semibold",
       icon: <GitFork className="h-4 w-4" />,
     },
     {
       id: "logic",
-      label: "Lógica y Tablas",
+      label: "Reglas y tablas",
       activeClass: "border-indigo-600 text-indigo-700 font-semibold",
-      icon: <Binary className="h-4 w-4" />,
+      icon: <BookOpen className="h-4 w-4" />,
     },
     {
       id: "knowledge",
-      label: "Base de Conocimiento",
+      label: "Gestionar reglas",
       activeClass: "border-blue-600 text-blue-700 font-semibold",
-      icon: <Database className="h-4 w-4" />,
+      icon: <SlidersHorizontal className="h-4 w-4" />,
     },
     {
       id: "history",
-      label: `Historial (${evaluations.length})`,
+      label:
+        evaluations.length > 0
+          ? `Historial (${evaluations.length})`
+          : "Historial",
       activeClass: "border-cyan-600 text-cyan-700 font-semibold",
       icon: <Clock className="h-4 w-4" />,
     },
@@ -101,7 +104,7 @@ export function ExpertSystemShell({
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[#f0f4f9]">
-      {/* Auroras de Refracción Ambiental (Ateneo+ Liquid Glassmorphism) */}
+      {/* Auroras ambientales sutiles (Ateneo+ Liquid Glassmorphism) */}
       <div
         className="pointer-events-none fixed -top-32 -left-32 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-cyan-400/20 via-blue-500/15 to-transparent blur-3xl"
         aria-hidden="true"
@@ -115,34 +118,38 @@ export function ExpertSystemShell({
         aria-hidden="true"
       />
 
-      {/* Navbar Sticky Liquid Glassmorphism */}
+      {/* Cabecera Sticky minimalista */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 w-full max-w-[1680px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
-          <div className="flex items-center gap-3">
-            <Stethoscope className="h-6 w-6 text-[#0b57d0]" strokeWidth={2.2} aria-hidden="true" />
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg font-black tracking-tight text-slate-900">
-                  NEUMOLÓGICA
-                  <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    +
-                  </span>
-                </span>
-                <span className="hidden text-slate-300 sm:inline">•</span>
-                <span className="hidden text-xs font-medium text-[#444746] sm:inline">
-                  Sistema Experto Respiratorio
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
+          <button
+            type="button"
+            onClick={() => setActiveTab("diagnose")}
+            className="flex cursor-pointer items-center gap-2.5 text-left"
+          >
+            <Stethoscope
+              className="h-6 w-6 text-[#0b57d0]"
+              strokeWidth={2.2}
+              aria-hidden="true"
+            />
+            <span className="text-lg font-black tracking-tight text-slate-900">
+              NEUMOLÓGICA
+              <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                +
+              </span>
+            </span>
+            <span className="hidden text-slate-300 sm:inline">•</span>
+            <span className="hidden text-xs font-medium text-[#444746] sm:inline">
+              Orientación Respiratoria
+            </span>
+          </button>
 
           <div className="flex items-center gap-4 text-xs text-[#444746]">
             <div className="hidden items-center gap-2 md:flex">
-              <span className="font-medium text-slate-700">{kb.symptoms.length} Síntomas</span>
+              <span>{kb.symptoms.filter((s) => s.isActive).length} síntomas</span>
               <span className="text-slate-300">•</span>
-              <span className="font-medium text-slate-700">{kb.rules.length} Reglas</span>
+              <span>{kb.rules.filter((r) => r.isActive).length} reglas activas</span>
               <span className="text-slate-300">•</span>
-              <span className="font-medium text-slate-700">{kb.diseases.length} Patologías</span>
+              <span>{kb.diseases.length} afecciones</span>
             </div>
 
             <button
@@ -150,19 +157,20 @@ export function ExpertSystemShell({
               onClick={refreshAll}
               disabled={syncing}
               className="btn-glass-secondary flex items-center gap-1.5 px-3.5 py-1.5"
+              title="Actualizar datos"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 text-[#0b57d0] ${syncing ? "animate-spin" : ""}`}
               />
-              <span>Sincronizar</span>
+              <span className="hidden sm:inline">Actualizar</span>
             </button>
           </div>
         </div>
 
-        {/* Pestañas Planas con Línea de Subrayado Activa (Sin cajas anidadas) */}
+        {/* Navegación por pestañas planas (sin cajas anidadas) */}
         <nav
-          aria-label="Secciones del sistema experto"
-          className="mx-auto flex w-full max-w-[1680px] items-center gap-6 overflow-x-auto px-4 sm:px-8 lg:px-12"
+          aria-label="Secciones principales"
+          className="mx-auto flex w-full max-w-[1440px] items-center gap-6 overflow-x-auto px-4 sm:px-8 lg:px-12"
         >
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -185,33 +193,20 @@ export function ExpertSystemShell({
         </nav>
       </header>
 
-      {/* Lienzo Central Panorámico */}
-      <main className="relative z-10 mx-auto w-full max-w-[1680px] flex-1 px-4 py-8 sm:px-8 lg:px-12">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#0b57d0]">
-              Representación del Conocimiento y Razonamiento • UBE • Grupo 5
-            </p>
-            <h1 className="mt-1 text-[28px] font-normal leading-tight text-[#1f1f1f] sm:text-[34px]">
-              Sistema de Detección de Enfermedades Respiratorias
-            </h1>
-          </div>
-          <p className="max-w-md text-xs leading-relaxed text-[#444746]">
-            Motor de inferencia basado en encadenamiento hacia adelante (Forward Chaining),
-            Modus Ponens, resolución de conflictos y base de conocimiento en PostgreSQL.
-          </p>
-        </div>
-
+      {/* Contenido principal */}
+      <main className="relative z-10 mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-8 lg:px-12">
         {activeTab === "diagnose" && (
           <DiagnosticWorkspace
             symptoms={kb.symptoms}
             onEvaluationSaved={handleEvaluationSaved}
+            onOpenGraph={() => setActiveTab("graph")}
           />
         )}
 
         {activeTab === "graph" && (
           <KnowledgeGraphView
             graph={kb.graph}
+            diseases={kb.diseases}
             highlightedSymptomIds={lastInference?.observedSymptoms.map((s) => s.id)}
             highlightedRuleIds={lastInference?.matchedDiagnoses.map((d) => d.ruleId)}
           />
@@ -234,22 +229,23 @@ export function ExpertSystemShell({
           <EvaluationHistoryView
             evaluations={evaluations}
             onRefresh={refreshAll}
+            onGoToEvaluate={() => setActiveTab("diagnose")}
           />
         )}
       </main>
 
-      {/* Footer Institucional Liquid Glassmorphism */}
+      {/* Pie de página sobrio */}
       <footer className="relative z-10 border-t border-slate-200/60 bg-white/80 py-4 text-xs text-slate-500 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[1680px] flex-col items-center justify-between gap-2 px-4 text-center sm:flex-row sm:px-8 sm:text-left lg:px-12">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center justify-between gap-2 px-4 text-center sm:flex-row sm:px-8 sm:text-left lg:px-12">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-800">NEUMOLÓGICA+</span>
             <span className="text-slate-300">•</span>
             <span className="text-[11px] text-slate-500">
-              Proyecto Integrador Final • Universidad Bolivariana del Ecuador
+              Universidad Bolivariana del Ecuador • Grupo 5
             </span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Uso académico y demostrativo de Inteligencia Artificial Simbólica • No sustituye criterio médico
+            Herramienta educativa de orientación inicial • No reemplaza una consulta médica profesional
           </p>
         </div>
       </footer>

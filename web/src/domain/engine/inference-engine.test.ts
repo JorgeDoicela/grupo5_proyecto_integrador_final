@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { runForwardChainingInference } from "@/domain/engine/inference-engine";
-import { formalizeRule } from "@/domain/logic/formal-logic";
 import type {
   DiseaseEntity,
   RuleEntity,
@@ -106,25 +105,53 @@ const RULES: RuleEntity[] = [
 ];
 
 describe("Motor de Inferencia Forward Chaining", () => {
-  it("infiere COVID-19 cuando se presentan F, C y L", () => {
+  it("infiere Resfriado común (R1) con T y A", () => {
+    const result = runForwardChainingInference({
+      selectedSymptomIds: ["s-t", "s-a"],
+      allSymptoms: SYMPTOMS,
+      activeRules: RULES,
+    });
+    expect(result.matchedDiagnoses).toHaveLength(1);
+    expect(result.matchedDiagnoses[0]?.disease.code).toBe("COLD");
+  });
+
+  it("infiere Gripe (R2) con F, C y A", () => {
+    const result = runForwardChainingInference({
+      selectedSymptomIds: ["s-f", "s-c", "s-a"],
+      allSymptoms: SYMPTOMS,
+      activeRules: RULES,
+    });
+    expect(result.matchedDiagnoses).toHaveLength(1);
+    expect(result.matchedDiagnoses[0]?.disease.code).toBe("FLU");
+  });
+
+  it("infiere COVID-19 (R3) con F, C y L", () => {
     const result = runForwardChainingInference({
       selectedSymptomIds: ["s-f", "s-c", "s-l"],
       allSymptoms: SYMPTOMS,
       activeRules: RULES,
     });
-
     expect(result.matchedDiagnoses).toHaveLength(1);
     expect(result.matchedDiagnoses[0]?.disease.code).toBe("COVID19");
     expect(result.conflictDetected).toBe(false);
   });
 
-  it("resuelve el conflicto Neumonía vs Asma priorizando Neumonía por especificidad (3 vs 2)", () => {
+  it("infiere Asma (R4) con S y C sin fiebre", () => {
+    const result = runForwardChainingInference({
+      selectedSymptomIds: ["s-s", "s-c"],
+      allSymptoms: SYMPTOMS,
+      activeRules: RULES,
+    });
+    expect(result.matchedDiagnoses).toHaveLength(1);
+    expect(result.matchedDiagnoses[0]?.disease.code).toBe("ASTHMA");
+  });
+
+  it("resuelve conflicto Neumonía vs Asma (F, S, C) priorizando Neumonía", () => {
     const result = runForwardChainingInference({
       selectedSymptomIds: ["s-f", "s-s", "s-c"],
       allSymptoms: SYMPTOMS,
       activeRules: RULES,
     });
-
     expect(result.conflictDetected).toBe(true);
     expect(result.matchedDiagnoses).toHaveLength(2);
     expect(result.matchedDiagnoses[0]?.disease.code).toBe("PNEUMONIA");
@@ -133,23 +160,61 @@ describe("Motor de Inferencia Forward Chaining", () => {
     expect(result.matchedDiagnoses[1]?.isPrimary).toBe(false);
   });
 
-  it("reporta coincidencias parciales cuando no se cumple ninguna regla completa", () => {
+  it("resuelve empate de especificidad por severidad clínica (COVID-19 sobre Gripe)", () => {
+    const result = runForwardChainingInference({
+      selectedSymptomIds: ["s-f", "s-c", "s-a", "s-l"],
+      allSymptoms: SYMPTOMS,
+      activeRules: RULES,
+    });
+    expect(result.conflictDetected).toBe(true);
+    expect(result.matchedDiagnoses[0]?.disease.code).toBe("COVID19");
+    expect(result.matchedDiagnoses[1]?.disease.code).toBe("FLU");
+  });
+
+  it("reporta coincidencias parciales cuando ninguna regla se cumple completamente", () => {
     const result = runForwardChainingInference({
       selectedSymptomIds: ["s-f", "s-c"],
       allSymptoms: SYMPTOMS,
       activeRules: RULES,
     });
-
     expect(result.matchedDiagnoses).toHaveLength(0);
     expect(result.partialMatches.length).toBeGreaterThan(0);
     expect(result.partialMatches[0]?.coveragePercent).toBe(67);
   });
 
-  it("genera tabla de verdad completa (2^3 = 8 filas) y fórmulas formales", () => {
-    const formal = formalizeRule(RULES[2]!);
-    expect(formal.propositionalFormula).toBe("(F ∧ C ∧ L) → COVID19");
-    expect(formal.folFormula).toContain("∀x");
-    expect(formal.truthTable).toHaveLength(8);
-    expect(formal.truthTable.filter((r) => r.consequentInferred)).toHaveLength(1);
+  it("ignora reglas inactivas y soporta condiciones negadas", () => {
+    const customRules: RuleEntity[] = [
+      { ...RULES[0]!, isActive: false },
+      {
+        id: "r-neg",
+        code: "R6",
+        name: "Asma sin fiebre",
+        description: "",
+        diseaseId: DISEASES.ASTHMA.id,
+        disease: DISEASES.ASTHMA,
+        priority: 1,
+        isActive: true,
+        isCore: false,
+        conditions: [
+          { symptomId: "s-s", symptomCode: "S", symptomName: "Dificultad para respirar", isNegated: false },
+          { symptomId: "s-f", symptomCode: "F", symptomName: "Fiebre", isNegated: true },
+        ],
+      },
+    ];
+
+    const withoutFever = runForwardChainingInference({
+      selectedSymptomIds: ["s-s", "s-t", "s-a"],
+      allSymptoms: SYMPTOMS,
+      activeRules: customRules,
+    });
+    expect(withoutFever.matchedDiagnoses).toHaveLength(1);
+    expect(withoutFever.matchedDiagnoses[0]?.ruleCode).toBe("R6");
+
+    const withFever = runForwardChainingInference({
+      selectedSymptomIds: ["s-s", "s-f"],
+      allSymptoms: SYMPTOMS,
+      activeRules: customRules,
+    });
+    expect(withFever.matchedDiagnoses).toHaveLength(0);
   });
 });

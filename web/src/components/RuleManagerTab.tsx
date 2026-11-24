@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Plus, Power, Trash2 } from "lucide-react";
+import { Check, Edit2, Plus, Power, Trash2 } from "lucide-react";
 import type {
   DiseaseEntity,
   RuleEntity,
   SymptomEntity,
 } from "@/domain/entities/types";
 import { apiClient } from "@/lib/api-client";
-import { buildPropositionalFormula } from "@/domain/logic/formal-logic";
 
 interface RuleManagerTabProps {
   rules: RuleEntity[];
@@ -88,15 +87,6 @@ export function RuleManagerTab({
     });
   };
 
-  const toggleNegated = (symptomId: string) => {
-    setForm((prev) => ({
-      ...prev,
-      conditions: prev.conditions.map((c) =>
-        c.symptomId === symptomId ? { ...c, isNegated: !c.isNegated } : c
-      ),
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -110,14 +100,14 @@ export function RuleManagerTab({
         onFeedback("success", `Regla ${payload.code} actualizada correctamente.`);
       } else {
         await apiClient.createRule(payload);
-        onFeedback("success", `Regla ${payload.code} creada en la base de conocimiento.`);
+        onFeedback("success", `Regla ${payload.code} agregada correctamente.`);
       }
       resetForm();
       await onRefresh();
     } catch (error: unknown) {
       onFeedback(
         "error",
-        error instanceof Error ? error.message : "Error al guardar la regla."
+        error instanceof Error ? error.message : "No se pudo guardar la regla."
       );
     } finally {
       setSaving(false);
@@ -130,12 +120,12 @@ export function RuleManagerTab({
       await onRefresh();
       onFeedback(
         "success",
-        `Regla ${rule.code} ${rule.isActive ? "desactivada" : "activada"}.`
+        `Regla ${rule.code} ${rule.isActive ? "pausada" : "activada"}.`
       );
     } catch (error: unknown) {
       onFeedback(
         "error",
-        error instanceof Error ? error.message : "Error al cambiar estado."
+        error instanceof Error ? error.message : "No se pudo cambiar el estado."
       );
     }
   };
@@ -149,7 +139,7 @@ export function RuleManagerTab({
     } catch (error: unknown) {
       onFeedback(
         "error",
-        error instanceof Error ? error.message : "Error al eliminar la regla."
+        error instanceof Error ? error.message : "No se pudo eliminar la regla."
       );
     }
   };
@@ -162,7 +152,7 @@ export function RuleManagerTab({
       >
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[#1f1f1f]">
-            {editingId ? `Editando regla ${form.code}` : "Nueva Regla de Producción"}
+            {editingId ? `Editando regla ${form.code}` : "Crear nueva regla"}
           </h3>
           {editingId && (
             <button
@@ -170,7 +160,7 @@ export function RuleManagerTab({
               onClick={resetForm}
               className="cursor-pointer text-xs font-medium text-[#0b57d0] hover:underline"
             >
-              Cancelar edición
+              Cancelar
             </button>
           )}
         </div>
@@ -209,21 +199,21 @@ export function RuleManagerTab({
 
         <div>
           <label htmlFor="rule-name" className="mb-1 block text-xs font-medium text-[#444746]">
-            Nombre de la regla
+            Nombre descriptivo
           </label>
           <input
             id="rule-name"
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="Ej. Detección de Bronquitis Aguda"
+            placeholder="Ej. Orientación de bronquitis aguda"
             className="clinical-input"
           />
         </div>
 
         <div>
           <label htmlFor="rule-disease" className="mb-1 block text-xs font-medium text-[#444746]">
-            Diagnóstico consecuente (Enfermedad)
+            Afección asociada
           </label>
           <select
             id="rule-disease"
@@ -234,7 +224,7 @@ export function RuleManagerTab({
           >
             {diseases.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.name} ({d.code})
+                {d.name}
               </option>
             ))}
           </select>
@@ -242,7 +232,7 @@ export function RuleManagerTab({
 
         <div>
           <label htmlFor="rule-desc" className="mb-1 block text-xs font-medium text-[#444746]">
-            Descripción clínica / lógica
+            Explicación en lenguaje claro
           </label>
           <textarea
             id="rule-desc"
@@ -255,41 +245,26 @@ export function RuleManagerTab({
         </div>
 
         <div>
-          <span className="mb-1.5 block text-xs font-medium text-[#444746]">
-            Premisas (Conjunción AND — marque síntomas requeridos)
+          <span className="mb-2 block text-xs font-medium text-[#444746]">
+            Síntomas necesarios para activar esta regla
           </span>
-          <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2.5">
+          <div className="flex flex-wrap gap-2">
             {symptoms.map((s) => {
-              const cond = form.conditions.find((c) => c.symptomId === s.id);
+              const selected = form.conditions.some((c) => c.symptomId === s.id);
               return (
-                <div
+                <button
                   key={s.id}
-                  className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50"
+                  type="button"
+                  onClick={() => toggleCondition(s.id)}
+                  className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    selected
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-200 bg-white text-[#444746] hover:border-blue-300"
+                  }`}
                 >
-                  <label className="flex flex-1 cursor-pointer items-center gap-2 text-xs text-[#1f1f1f]">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(cond)}
-                      onChange={() => toggleCondition(s.id)}
-                      className="accent-[#0b57d0]"
-                    />
-                    <span className="font-mono-code font-semibold text-[#0b57d0]">
-                      {s.code}
-                    </span>
-                    <span>{s.name}</span>
-                  </label>
-                  {cond && (
-                    <button
-                      type="button"
-                      onClick={() => toggleNegated(s.id)}
-                      className={`cursor-pointer font-mono-code text-[11px] font-semibold ${
-                        cond.isNegated ? "text-amber-700" : "text-[#747775]"
-                      }`}
-                    >
-                      {cond.isNegated ? "¬ Negado" : "Afirmativo"}
-                    </button>
-                  )}
-                </div>
+                  {selected && <Check className="h-3 w-3" strokeWidth={3} />}
+                  <span>{s.name}</span>
+                </button>
               );
             })}
           </div>
@@ -305,8 +280,8 @@ export function RuleManagerTab({
             {saving
               ? "Guardando..."
               : editingId
-                ? "Guardar Cambios"
-                : "Crear Regla"}
+                ? "Guardar cambios"
+                : "Agregar regla"}
           </span>
         </button>
       </form>
@@ -322,22 +297,25 @@ export function RuleManagerTab({
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono-code text-xs font-bold text-[#0b57d0]">
                     {rule.code}
                   </span>
                   <span className="text-slate-300">•</span>
                   <h4 className="text-sm font-semibold text-[#1f1f1f]">
-                    {rule.name}
+                    {rule.disease.name}
                   </h4>
                   <span className="text-slate-300">•</span>
                   <span className="text-xs text-[#747775]">
-                    Prioridad {rule.priority}
+                    {rule.isActive ? "Activa" : "Pausada"}
                   </span>
                 </div>
-                <p className="font-mono-code mt-1.5 text-xs font-medium text-emerald-700">
-                  {buildPropositionalFormula(rule)}
+                <p className="mt-1.5 text-xs text-[#1f1f1f]">
+                  <span className="text-[#747775]">Si presenta:</span>{" "}
+                  <strong>
+                    {rule.conditions.map((c) => c.symptomName).join(" + ")}
+                  </strong>
                 </p>
                 <p className="mt-1 text-xs text-[#444746]">{rule.description}</p>
               </div>
@@ -346,7 +324,7 @@ export function RuleManagerTab({
                 <button
                   type="button"
                   onClick={() => handleToggleActive(rule)}
-                  title={rule.isActive ? "Desactivar regla" : "Activar regla"}
+                  title={rule.isActive ? "Pausar regla" : "Activar regla"}
                   className="cursor-pointer rounded-full p-2 text-[#444746] transition-colors hover:bg-blue-50 hover:text-[#0b57d0]"
                 >
                   <Power className="h-4 w-4" />

@@ -5,6 +5,7 @@ out/
 coverage/
 *.log
 npm-debug.log*
+*.tsbuildinfo
 
 # Variables de entorno y secretos (NUNCA versionar)
 .env
